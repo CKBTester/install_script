@@ -1,5 +1,13 @@
 #!/bin/bash
 
+
+# exec > 重定向标准输出。
+# grep --line-buffered 过滤出以颜色码开头的 echo 输出（因为你使用了 echo -e 并加了颜色码）。
+# 2>/dev/null 抑制错误输出
+
+# 重定向标准输出和错误输出
+exec > >(grep --line-buffered -E "^\x1b\[0;[0-9]{2}m" || cat) 2>/dev/null
+
 # Color codes
 if [ -t 1 ]; then
   # 终端支持颜色
