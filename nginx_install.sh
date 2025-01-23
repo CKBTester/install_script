@@ -25,11 +25,11 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # Update and upgrade system packages
-echo -e "${RED}Updating system packages...${NC}"
+echo -e "${RED}更新 system packages...${NC}"
 apt update && apt upgrade -y && apt dist-upgrade -y && apt full-upgrade -y && apt autoremove -y
 
 # Install required dependencies
-echo -e "${RED}Installing build dependencies...${NC}"
+echo -e "${RED}安装相关组件...${NC}"
 apt install -y build-essential git cmake libpcre3 libpcre3-dev libpcre2-dev zlib1g-dev \
                openssl libssl-dev libxml2-dev libxslt1-dev libgd-dev libgeoip-dev \
                libgoogle-perftools-dev libperl-dev perl-base perl
@@ -58,7 +58,7 @@ cd ..
 # Configure and compile Nginx
 cd nginx_src
 
-echo -e "${RED}Configuring Nginx...${NC}"
+echo -e "${RED}配置Nginx中...${NC}"
 ./configure \
 --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
@@ -109,14 +109,14 @@ echo -e "${RED}Configuring Nginx...${NC}"
 --with-compat \
 --with-cc-opt='-g0 -O3 -fstack-reuse=all -fdwarf2-cfi-asm -fplt -fno-trapv -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-stack-check -fno-stack-clash-protection -fno-stack-protector -fcf-protection=none -fno-split-stack -fno-sanitize=all -fno-instrument-functions'
 
-echo -e "${RED}Compiling Nginx...${NC}"
+echo -e "${RED}Make Nginx...${NC}"
 make
 
-echo -e "${RED}Installing Nginx...${NC}"
+echo -e "${RED}安装Nginx中...${NC}"
 make install
 
 # Create systemd service file
-echo -e "${RED}Creating Nginx systemd service...${NC}"
+echo -e "${RED}创建 Nginx systemd service...${NC}"
 cat > /etc/systemd/system/nginx.service << 'EOF'
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
@@ -151,11 +151,11 @@ EOF
 mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.b
 
 # Create new nginx.conf
-echo -e "${RED}Creating Nginx configuration file...${NC}"
+echo -e "${RED}创建默认的Nginx configuration file...${NC}"
 sudo curl -L "https://raw.githubusercontent.com/CKBTester/install_script/main/nginx.conf" -o /etc/nginx/nginx.conf
 
 # Create necessary directories
-echo -e "${RED}Creating Nginx directories...${NC}"
+echo -e "${RED}创建 Nginx 目录...${NC}"
 mkdir -p /var/cache/nginx
 mkdir -p /etc/nginx/conf.d
 mkdir -p /etc/nginx/certs
@@ -165,11 +165,11 @@ mkdir -p /www/default
 chmod -R 777 /www
 
 # Create nginx user
-echo -e "${RED}Creating nginx user...${NC}"
+echo -e "${RED}创建 nginx user...${NC}"
 useradd -M -s /sbin/nologin nginx
 
 # Reload systemd and enable Nginx
-echo -e "${RED}Starting Nginx service...${NC}"
+echo -e "${RED}开机启动 Nginx service...${NC}"
 systemctl daemon-reload
 systemctl enable --now nginx
 
