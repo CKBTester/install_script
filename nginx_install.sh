@@ -1,12 +1,9 @@
 #!/bin/bash
 
-
-# exec > 重定向标准输出。
-# grep --line-buffered 过滤出以颜色码开头的 echo 输出（因为你使用了 echo -e 并加了颜色码）。
-# 2>/dev/null 抑制错误输出
-
-# 重定向标准输出和错误输出
-exec > >(grep --line-buffered -E "^\x1b\[0;[0-9]{2}m" || cat) 2>/dev/null
+# 保存原始 stdout 到文件描述符 3
+exec 3>&1
+# 静默所有后续命令的输出
+exec >/dev/null 2>&1
 
 # Color codes
 if [ -t 1 ]; then
@@ -28,16 +25,16 @@ set -o pipefail
 
 # Ensure script is run as root
 if [[ $EUID -ne 0 ]]; then
-   echo -e "${RED}This script must be run as root. Use sudo.${NC}" 
+   echo -e "${RED}This script must be run as root. Use sudo.${NC}" >&3
    exit 1
 fi
 
 # Update and upgrade system packages
-echo -e "${RED}更新 system packages...${NC}"
+echo -e "${RED}更新 system packages...${NC}" >&3
 apt update && apt upgrade -y && apt dist-upgrade -y && apt full-upgrade -y && apt autoremove -y
 
 # Install required dependencies
-echo -e "${RED}安装相关组件...${NC}"
+echo -e "${RED}安装相关组件...${NC}" >&3
 apt install -y build-essential git cmake libpcre3 libpcre3-dev libpcre2-dev zlib1g-dev \
                openssl libssl-dev libxml2-dev libxslt1-dev libgd-dev libgeoip-dev \
                libgoogle-perftools-dev libperl-dev perl-base perl
@@ -51,7 +48,7 @@ cd $COMPILE_PATH
 export NGINX_VERSION="1.25.3"
 
 # Download and prepare Nginx source
-echo -e "${RED}Downloading Nginx $NGINX_VERSION...${NC}"
+echo -e "${RED}Downloading Nginx $NGINX_VERSION...${NC}" >&3
 wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
 tar -zxvf nginx-$NGINX_VERSION.tar.gz
 rm nginx-$NGINX_VERSION.tar.gz
@@ -66,7 +63,7 @@ cd ..
 # Configure and compile Nginx
 cd nginx_src
 
-echo -e "${RED}配置Nginx中...${NC}"
+echo -e "${RED}配置Nginx中...${NC}" >&3
 ./configure \
 --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
@@ -117,14 +114,14 @@ echo -e "${RED}配置Nginx中...${NC}"
 --with-compat \
 --with-cc-opt='-g0 -O3 -fstack-reuse=all -fdwarf2-cfi-asm -fplt -fno-trapv -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-stack-check -fno-stack-clash-protection -fno-stack-protector -fcf-protection=none -fno-split-stack -fno-sanitize=all -fno-instrument-functions'
 
-echo -e "${RED}Make Nginx...${NC}"
+echo -e "${RED}Make Nginx...${NC}" >&3
 make
 
-echo -e "${RED}安装Nginx中...${NC}"
+echo -e "${RED}安装Nginx中...${NC}" >&3
 make install
 
 # Create systemd service file
-echo -e "${RED}创建 Nginx systemd service...${NC}"
+echo -e "${RED}创建 Nginx systemd service...${NC}" >&3
 cat > /etc/systemd/system/nginx.service << 'EOF'
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
@@ -159,11 +156,11 @@ EOF
 mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.b
 
 # Create new nginx.conf
-echo -e "${RED}创建默认的Nginx configuration file...${NC}"
+echo -e "${RED}创建默认的Nginx configuration file...${NC}" >&3
 sudo curl -L "https://raw.githubusercontent.com/CKBTester/install_script/main/nginx.conf" -o /etc/nginx/nginx.conf
 
 # Create necessary directories
-echo -e "${RED}创建 Nginx 目录...${NC}"
+echo -e "${RED}创建 Nginx 目录...${NC}" >&3
 mkdir -p /var/cache/nginx
 mkdir -p /etc/nginx/conf.d
 mkdir -p /etc/nginx/certs
@@ -173,15 +170,15 @@ mkdir -p /www/default
 chmod -R 777 /www
 
 # Create nginx user
-echo -e "${RED}创建 nginx user...${NC}"
+echo -e "${RED}创建 nginx user...${NC}" >&3
 useradd -M -s /sbin/nologin nginx
 
 # Reload systemd and enable Nginx
-echo -e "${RED}开机启动 Nginx service...${NC}"
+echo -e "${RED}开机启动 Nginx service...${NC}" >&3
 systemctl daemon-reload
 systemctl enable --now nginx
 
 # Check Nginx status
 systemctl status nginx
 
-echo -e "${RED}Nginx installation and configuration completed successfully!${NC}"
+echo -e "${RED}Nginx installation and configuration completed successfully!${NC}" >&3
