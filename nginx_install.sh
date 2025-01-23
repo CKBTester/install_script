@@ -5,8 +5,8 @@ exec 3>&1
 # 静默所有后续命令的输出
 exec >/dev/null 2>&1
 
-# Color codes
-if [ -t 1 ]; then
+# Color codes，本来是-t 1，现在修改为-t 3
+if [ -t 3 ]; then
   # 终端支持颜色
   RED="\033[0;31m"
   GREEN="\033[0;32m"
