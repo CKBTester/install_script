@@ -1,21 +1,26 @@
 #!/bin/bash
 
+# Color codes
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+
 # Set error handling
 set -e
 set -o pipefail
 
 # Ensure script is run as root
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root. Use sudo." 
+   echo "${RED}This script must be run as root. Use sudo.${NC}" 
    exit 1
 fi
 
 # Update and upgrade system packages
-echo "Updating system packages..."
+echo  "${RED}Updating system packages...${NC}"
 apt update && apt upgrade -y && apt dist-upgrade -y && apt full-upgrade -y && apt autoremove -y
 
 # Install required dependencies
-echo "Installing build dependencies..."
+echo "${RED}Installing build dependencies...${NC}"
 apt install -y build-essential git cmake libpcre3 libpcre3-dev libpcre2-dev zlib1g-dev \
                openssl libssl-dev libxml2-dev libxslt1-dev libgd-dev libgeoip-dev \
                libgoogle-perftools-dev libperl-dev perl-base perl
@@ -29,7 +34,7 @@ cd $COMPILE_PATH
 export NGINX_VERSION="1.25.3"
 
 # Download and prepare Nginx source
-echo "Downloading Nginx $NGINX_VERSION..."
+echo "${RED}Downloading Nginx $NGINX_VERSION...${NC}"
 wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
 tar -zxvf nginx-$NGINX_VERSION.tar.gz
 rm nginx-$NGINX_VERSION.tar.gz
@@ -44,7 +49,7 @@ cd ..
 # Configure and compile Nginx
 cd nginx_src
 
-echo "Configuring Nginx..."
+echo "${RED}Configuring Nginx...${NC}"
 ./configure \
 --prefix=/etc/nginx \
 --sbin-path=/usr/sbin/nginx \
@@ -95,14 +100,14 @@ echo "Configuring Nginx..."
 --with-compat \
 --with-cc-opt='-g0 -O3 -fstack-reuse=all -fdwarf2-cfi-asm -fplt -fno-trapv -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-stack-check -fno-stack-clash-protection -fno-stack-protector -fcf-protection=none -fno-split-stack -fno-sanitize=all -fno-instrument-functions'
 
-echo "Compiling Nginx..."
+echo "${RED}Compiling Nginx...${NC}"
 make
 
-echo "Installing Nginx..."
+echo "${RED}Installing Nginx...${NC}"
 make install
 
 # Create systemd service file
-echo "Creating Nginx systemd service..."
+echo "${RED}Creating Nginx systemd service...${NC}"
 cat > /etc/systemd/system/nginx.service << 'EOF'
 [Unit]
 Description=The NGINX HTTP and reverse proxy server
@@ -137,11 +142,11 @@ EOF
 mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.b
 
 # Create new nginx.conf
-echo "Creating Nginx configuration file..."
+echo "${RED}Creating Nginx configuration file...${NC}"
 sudo curl -L "https://raw.githubusercontent.com/CKBTester/install_script/main/nginx.conf" -o /etc/nginx/nginx.conf
 
 # Create necessary directories
-echo "Creating Nginx directories..."
+echo "${RED}Creating Nginx directories...${NC}"
 mkdir -p /var/cache/nginx
 mkdir -p /etc/nginx/conf.d
 mkdir -p /etc/nginx/certs
@@ -151,15 +156,15 @@ mkdir -p /www/default
 chmod -R 777 /www
 
 # Create nginx user
-echo "Creating nginx user..."
+echo "${RED}Creating nginx user...${NC}"
 useradd -M -s /sbin/nologin nginx
 
 # Reload systemd and enable Nginx
-echo "Starting Nginx service..."
+echo "${RED}Starting Nginx service...${NC}"
 systemctl daemon-reload
 systemctl enable --now nginx
 
 # Check Nginx status
 systemctl status nginx
 
-echo "Nginx installation and configuration completed successfully!"
+echo "Nginx installation and configuration completed successfully!${NC}"
