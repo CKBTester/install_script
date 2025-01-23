@@ -1,8 +1,17 @@
 #!/bin/bash
 
 # Color codes
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+if [ -t 1 ]; then
+  # 终端支持颜色
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  NC='\033[0m' # No Color
+else
+  # 终端不支持颜色
+  RED=''
+  GREEN=''
+  NC=''
+fi
 
 
 # Set error handling
