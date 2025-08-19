@@ -35,9 +35,12 @@ apt update && apt upgrade -y && apt dist-upgrade -y && apt full-upgrade -y && ap
 
 # Install required dependencies
 echo -e "${RED}安装相关组件...${NC}" >&3
-apt install -y build-essential git cmake libpcre3 libpcre3-dev libpcre2-dev zlib1g-dev \
+apt install -y build-essential git cmake libpcre2-dev zlib1g-dev \
                openssl libssl-dev libxml2-dev libxslt1-dev libgd-dev libgeoip-dev \
                libgoogle-perftools-dev libperl-dev perl-base perl
+
+
+# debian13暂时删除libpcre3 libpcre3-dev，找不到包.
 
 # Create compilation directory
 mkdir -p /home/compile/nginx
