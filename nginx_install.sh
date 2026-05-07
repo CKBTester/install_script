@@ -47,15 +47,47 @@ mkdir -p /home/compile/nginx
 export COMPILE_PATH="/home/compile/nginx"
 cd $COMPILE_PATH
 
-# Set Nginx version
-export NGINX_VERSION="1.30.0"
+# Set Nginx version (optional - leave empty for latest stable)
+export NGINX_VERSION="1.30.0"  # 如果想安装最新版，可以改成 NGINX_VERSION=""
 
 # Download and prepare Nginx source
-echo -e "${RED}Downloading Nginx $NGINX_VERSION...${NC}" >&3
-wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz
-tar -zxvf nginx-$NGINX_VERSION.tar.gz
-rm nginx-$NGINX_VERSION.tar.gz
-mv nginx-$NGINX_VERSION nginx_src
+if [ -z "$NGINX_VERSION" ]; then
+    # 如果版本号为空，自动获取最新稳定版
+    echo -e "${RED}No version specified. Fetching the latest stable Nginx version...${NC}" >&3
+    
+    download_page=$(curl -s https://nginx.org/en/download.html)
+    latest_stable_link=$(echo "$download_page" | grep -oP 'nginx-1\.\d+\.\d+\.tar\.gz' | head -1)
+    
+    if [ -z "$latest_stable_link" ]; then
+        echo -e "${RED}Failed to fetch the latest stable version. Please check your network.${NC}" >&3
+        exit 1
+    fi
+    
+    export NGINX_VERSION=$(echo "$latest_stable_link" | grep -oP '1\.\d+\.\d+')
+    echo -e "${GREEN}Latest stable version detected: $NGINX_VERSION${NC}" >&3
+    
+    # 下载最新版
+    wget "https://nginx.org/download/$latest_stable_link"
+else
+    # 使用指定的版本号
+    echo -e "${RED}Downloading Nginx $NGINX_VERSION (specified version)...${NC}" >&3
+    wget "https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"
+fi
+
+# 解压源码包
+echo -e "${RED}Extracting nginx-$NGINX_VERSION.tar.gz...${NC}" >&3
+tar -zxvf "nginx-$NGINX_VERSION.tar.gz"
+
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Extraction failed! The tarball might be corrupted or not found.${NC}" >&3
+    exit 1
+fi
+
+# 清理压缩包并重命名源码目录
+rm -f "nginx-$NGINX_VERSION.tar.gz"
+mv "nginx-$NGINX_VERSION" nginx_src
+
+echo -e "${GREEN}Nginx source prepared in 'nginx_src' directory (version: $NGINX_VERSION)${NC}" >&3
 
 # Clone Brotli module
 git clone https://github.com/google/ngx_brotli
