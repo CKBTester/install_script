@@ -48,7 +48,7 @@ export COMPILE_PATH="/home/compile/nginx"
 cd $COMPILE_PATH
 
 # Set Nginx version
-export NGINX_VERSION="1.30"
+export NGINX_VERSION="1.30.0"
 
 # Download and prepare Nginx source
 echo -e "${RED}Downloading Nginx $NGINX_VERSION...${NC}" >&3
